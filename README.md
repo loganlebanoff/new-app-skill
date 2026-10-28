@@ -10,5 +10,6 @@ Files:
 - `stack.md`: the locked stack, why each piece won, and the code shapes to copy.
 - `gotchas.md`: every bug Mealwright hit that a new app will hit again.
 - `db-backup.yml`: nightly `pg_dump` GitHub Actions workflow to copy into a new repo.
+- `testing.md` and `playwright-helper.js`: the throwaway Playwright loop against the web build.
 
 Install: clone this repo and symlink it as `~/.claude/skills/new-app`.

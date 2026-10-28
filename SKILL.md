@@ -9,7 +9,7 @@ The recipe that produced Mealwright (`~/mealwright`): a two-person app that runs
 iPhones through Expo Go, is developed in a browser on Ubuntu, and shares data through Supabase.
 Follow the steps in order. [`stack.md`](stack.md) holds the locked choices and why each one won.
 [`gotchas.md`](gotchas.md) holds every bug Mealwright hit that a new app will hit again. Read
-both before step 3.
+both before step 3. [`testing.md`](testing.md) is how each change gets checked in a browser.
 
 ## 1. Spec
 
@@ -88,8 +88,8 @@ and one signature element. Dark mode through `dark:` classes and `userInterfaceS
 
 ## 6. Build phase by phase
 
-For each phase: implement, check it in the browser (`npm run web`), run `npm run typecheck`,
-commit to `main`, push. Logan has said to commit and push as work finishes, no approval needed.
+For each phase: implement, check it in the browser with a Playwright script against `npm run
+web` (how in [`testing.md`](testing.md)), run `npm run typecheck`, commit to `main`, push. Logan has said to commit and push as work finishes, no approval needed.
 Update the README status list with one line per shipped phase.
 
 Check on the phone at least once per phase: `npx expo start --tunnel`, scan with the Camera app.
