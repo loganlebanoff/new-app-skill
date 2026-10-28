@@ -103,8 +103,13 @@ When Logan is ready for shared data (this can wait until phase 1 is in hand):
 1. Create a free project at supabase.com. Paste `supabase/schema.sql` into SQL Editor and run.
 2. Project Settings -> API: copy the URL and the anon key into `.env`. Restart Expo.
 3. Copy [`db-backup.yml`](db-backup.yml) into `.github/workflows/`, change the dump filename
-   prefix, and follow its header comment to add the `SUPABASE_DB_URL` secret. Run it once by
-   hand from the Actions tab and confirm the `db-backups` branch got a file with tables in it.
+   prefix. Ask Logan for the Session pooler connection string (Supabase dashboard -> Connect),
+   then store it with `gh secret set SUPABASE_DB_URL` and run the workflow with
+   `gh workflow run db-backup.yml`. Confirm the `db-backups` branch got a file with tables in it.
+
+Nothing here carries over between apps: each app gets its own Supabase project, so the URL,
+anon key and connection string are new every time. The logins that do carry over
+(`gh auth`, `npx supabase login`, `npx eas-cli login`) already live on this machine.
 4. If the app needs an edge function, deploy with `--no-verify-jwt` (reason in `gotchas.md`).
 
 Done when the Settings screen shows "Supabase connected" and the backup run is green.
