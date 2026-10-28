@@ -1,6 +1,6 @@
 ---
 name: new-app
-description: Start a new personal mobile app the way Mealwright was built. Expo Go on iPhone, Expo web build for development on Linux, Supabase free tier for shared data, no login, no Apple fee. Use when Logan wants to make, start, scaffold or bootstrap a new app.
+description: Start a new personal mobile app the way Mealwright was built. Expo Go on iPhone, Expo web build for development on Linux, Supabase free tier for shared data, no login, no Apple fee. Use when the user wants to make, start, scaffold or bootstrap a new app.
 ---
 
 # New app
@@ -13,7 +13,7 @@ both before step 3. [`testing.md`](testing.md) is how each change gets checked i
 
 ## 1. Spec
 
-Write `SPEC.md` before any code. Ask Logan only what the spec needs and cannot guess: the app's
+Write `SPEC.md` before any code. Ask the user only what the spec needs and cannot guess: the app's
 one-sentence purpose, who uses it (one phone or several), and the feature list. Then write:
 
 - a "Locked decisions" table (copy the one in `stack.md`, change only what this app differs on),
@@ -21,7 +21,7 @@ one-sentence purpose, who uses it (one phone or several), and the feature list. 
 - a phase plan: 4 to 6 phases, each one shippable on its own, phase 1 being a usable library or
   list with seeded demo data.
 
-Done when Logan has read the spec and agreed to phase 1.
+Done when the user has read the spec and agreed to phase 1.
 
 ## 2. Find the SDK Expo Go supports today
 
@@ -89,7 +89,7 @@ and one signature element. Dark mode through `dark:` classes and `userInterfaceS
 ## 6. Build phase by phase
 
 For each phase: implement, check it in the browser with a Playwright script against `npm run
-web` (how in [`testing.md`](testing.md)), run `npm run typecheck`, commit to `main`, push. Logan has said to commit and push as work finishes, no approval needed.
+web` (how in [`testing.md`](testing.md)), run `npm run typecheck`, commit to `main`, push. Commit and push as work finishes, no approval needed.
 Update the README status list with one line per shipped phase.
 
 Check on the phone at least once per phase: `npx expo start --tunnel`, scan with the Camera app.
@@ -98,12 +98,12 @@ file lists the ones already known.
 
 ## 7. Connect Supabase
 
-When Logan is ready for shared data (this can wait until phase 1 is in hand):
+When the user is ready for shared data (this can wait until phase 1 is in hand):
 
 1. Create a free project at supabase.com. Paste `supabase/schema.sql` into SQL Editor and run.
 2. Project Settings -> API: copy the URL and the anon key into `.env`. Restart Expo.
 3. Copy [`db-backup.yml`](db-backup.yml) into `.github/workflows/`, change the dump filename
-   prefix. Ask Logan for the Session pooler connection string (Supabase dashboard -> Connect),
+   prefix. Ask the user for the Session pooler connection string (Supabase dashboard -> Connect),
    then store it with `gh secret set SUPABASE_DB_URL` and run the workflow with
    `gh workflow run db-backup.yml`. Confirm the `db-backups` branch got a file with tables in it.
 
