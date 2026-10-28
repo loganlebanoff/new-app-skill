@@ -1,0 +1,70 @@
+# Nightly Supabase backup, since the free tier keeps none.
+# Replace <app> in the dump filename below with the app name.
+#
+# One-time setup (after the repo is on GitHub as PRIVATE and the Supabase project exists):
+#   1. Supabase dashboard -> Connect -> "Session pooler" connection string (URI).
+#      It must be the session pooler one: GitHub runners have no IPv6, and Supabase's
+#      direct connection address is IPv6-only. Port 5432, user like postgres.<projectref>.
+#   2. GitHub repo -> Settings -> Secrets and variables -> Actions -> new secret
+#      named SUPABASE_DB_URL with that URI as the value.
+#   3. Test it: Actions tab -> "Nightly database backup" -> Run workflow.
+#
+# Dumps land on the db-backups branch (keeps main's history clean), newest 60 kept.
+# GitHub emails you if a run fails.
+
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # 07:00 UTC daily, overnight in US time zones
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install postgresql-client 17 (pg_dump must match the server's major version)
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Switch to the db-backups branch
+        run: |
+          if git ls-remote --exit-code origin db-backups >/dev/null 2>&1; then
+            git switch db-backups
+          else
+            git switch --orphan db-backups
+          fi
+
+      - name: Dump, prune, push
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          # Without pipefail, a failing pg_dump piped into gzip still exits 0 and
+          # commits an empty dump — that hid every failure until someone looked.
+          set -euo pipefail
+          mkdir -p backups
+          STAMP="$(date -u +%F)"
+          # Full path: the runner image preinstalls client 16, and bare "pg_dump"
+          # resolves to it, which refuses to dump the version 17 server.
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-privileges | gzip > "backups/<app>-$STAMP.sql.gz"
+          # A dump with no tables means the secret or connection is broken; fail loudly.
+          # (grep -c, not -q: -q exits early and the broken pipe trips pipefail.)
+          TABLES="$(gunzip -c "backups/<app>-$STAMP.sql.gz" | grep -c "CREATE TABLE" || true)"
+          [ "$TABLES" -gt 0 ] || {
+            echo "Dump contains no tables - check the SUPABASE_DB_URL secret"; exit 1; }
+          ls -t backups/mealwright-*.sql.gz | tail -n +61 | xargs -r rm --
+          git config user.name "backup-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A backups
+          git commit -m "Database backup $STAMP" || { echo "nothing new to commit"; exit 0; }
+          git push origin db-backups
