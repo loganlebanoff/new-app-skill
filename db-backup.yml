@@ -1,5 +1,5 @@
 # Nightly Supabase backup, since the free tier keeps none.
-# Replace <app> in the dump filename below with the app name.
+# Set APP below to the app name; it prefixes every dump file.
 #
 # One-time setup (after the repo is on GitHub as PRIVATE and the Supabase project exists):
 #   1. Supabase dashboard -> Connect -> "Session pooler" connection string (URI).
@@ -25,6 +25,8 @@ permissions:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    env:
+      APP: <app>
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,13 +58,13 @@ jobs:
           STAMP="$(date -u +%F)"
           # Full path: the runner image preinstalls client 16, and bare "pg_dump"
           # resolves to it, which refuses to dump the version 17 server.
-          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-privileges | gzip > "backups/<app>-$STAMP.sql.gz"
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --no-owner --no-privileges | gzip > "backups/$APP-$STAMP.sql.gz"
           # A dump with no tables means the secret or connection is broken; fail loudly.
           # (grep -c, not -q: -q exits early and the broken pipe trips pipefail.)
-          TABLES="$(gunzip -c "backups/<app>-$STAMP.sql.gz" | grep -c "CREATE TABLE" || true)"
+          TABLES="$(gunzip -c "backups/$APP-$STAMP.sql.gz" | grep -c "CREATE TABLE" || true)"
           [ "$TABLES" -gt 0 ] || {
             echo "Dump contains no tables - check the SUPABASE_DB_URL secret"; exit 1; }
-          ls -t backups/mealwright-*.sql.gz | tail -n +61 | xargs -r rm --
+          ls -t backups/"$APP"-*.sql.gz | tail -n +61 | xargs -r rm --
           git config user.name "backup-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A backups
