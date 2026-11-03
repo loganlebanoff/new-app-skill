@@ -1,14 +1,15 @@
 # Checking a change in the browser
 
 The dev loop is the Expo web build driven by a throwaway Playwright script. No test framework
-in the app repo; the scripts live in the session scratchpad and are deleted with it. Keep the
-phone for the once-per-phase check in step 6.
+in the app repo; the scripts live in a scratch directory outside it and are thrown away with
+it. Keep the phone for the once-per-phase check in step 6.
 
 ## Setup, once per session
 
 ```bash
-cd <scratchpad>
-npm init -y >/dev/null && npm install playwright   # Chromium is already in ~/.cache/ms-playwright
+cd <scratch dir>
+npm init -y >/dev/null && npm install playwright
+npx playwright install chromium   # a no-op when it is already downloaded
 cp ~/.claude/skills/new-app/playwright-helper.js helper.js
 mkdir -p shots
 ```
@@ -34,8 +35,8 @@ const ok = (cond, msg) => console.log((cond ? 'PASS' : 'FAIL') + ': ' + msg);
 (async () => {
   const { browser, page, errors } = await launch();
   await go(page, '/');
-  await page.getByText('Recipes', { exact: true }).first().waitFor();
-  ok((await page.getByText('Chicken Marsala', { exact: true }).count()) >= 1, 'library lists the seeded recipe');
+  await page.getByText('<tab title>', { exact: true }).first().waitFor();
+  ok((await page.getByText('<a seeded title>', { exact: true }).count()) >= 1, 'list shows the seeded item');
   await shot(page, 'library');
   reportErrors(errors);
   await browser.close();
@@ -44,7 +45,7 @@ const ok = (cond, msg) => console.log((cond ? 'PASS' : 'FAIL') + ': ' + msg);
 
 Run with `BASE=http://localhost:<port> node check.js`.
 
-## Rules that came from Mealwright
+## Rules
 
 - Wait on an element (`waitFor`) rather than a fixed `waitForTimeout`. The seed load takes a
   few seconds on first paint, and timeouts either flake or waste the whole run.
