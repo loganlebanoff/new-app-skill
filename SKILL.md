@@ -119,12 +119,14 @@ Done when the Settings screen shows "Supabase connected" and the backup run is g
 ```bash
 npx eas-cli init                 # links the repo to a project on expo.dev
 npx eas-cli update:configure     # adds expo-updates and the update URL to app.json
-npx eas-cli update --branch main --message "<what shipped>"
+npx eas-cli env:push production --path .env   # the published bundle reads EXPO_PUBLIC_* from here
+npx eas-cli update --branch main --environment production --message "<what shipped>" --non-interactive
 ```
 
 `app.json` needs `"runtimeVersion": { "policy": "sdkVersion" }` so Expo Go (runtime
 `exposdk:<N>.0.0`) can load the update. The phone then opens the app from the project's page on
-expo.dev, no laptop running. Re-run the `update` command after each phase.
+expo.dev, no laptop running. Re-run the `update` command after every change; the AGENTS.md
+template in `stack.md` tells future sessions to do this.
 
 ## Optional: home-screen widget
 

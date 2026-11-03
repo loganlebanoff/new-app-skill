@@ -75,6 +75,16 @@ the app on a real iPhone without a Mac or a paid Apple account). Expo Go support
 SDK version at a time, so when the App Store client moves, the project must move with it,
 and never past it. As of <month year> that is SDK <N>. If the phone shows a version-mismatch
 error on launch, the client has moved again: upgrade the project to match.
+
+# Ship every change to the phone
+
+The phone runs the last published EAS Update, not the code on disk. After each change is
+committed, publish it:
+
+    npx eas-cli update --branch main --environment production --message "<what changed>" --non-interactive
+
+`--environment` is required with `--non-interactive`. The Supabase `EXPO_PUBLIC_*` values live
+in the EAS `production` environment, so the published bundle gets them from there.
 ```
 
 Also add `.claude/settings.json` with `{"enabledPlugins": {"expo@claude-plugins-official": true}}`
